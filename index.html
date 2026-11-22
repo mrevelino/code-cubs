@@ -83,7 +83,8 @@ details.grown[open] summary::before{transform:rotate(90deg)}
 .tips{display:grid;gap:12px;margin-top:12px;user-select:text;-webkit-user-select:text}
 .tips p{margin:0;line-height:1.55;max-width:65ch}
 .tips b{font-family:var(--font-display);font-weight:600}
-.resetrow{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:6px}
+.restart-confirm{display:flex;flex-direction:column;gap:12px;align-items:center;text-align:center}
+.restart-confirm p{margin:0;font-family:var(--font-display);font-weight:600;font-size:22px}
 .small{background:var(--tile);border:2px solid var(--line);border-radius:12px;padding:8px 14px;font-weight:700;font-size:15px}
 .small.danger{background:#FFE4DD;border-color:#FFB9A8}
 
@@ -319,6 +320,18 @@ function home(){
     <div class="shelf">${shelf}</div>
     <p class="hint">Every 2 stars unlocks a new sticker.</p>
   </section>
+  <section class="panel restart" aria-label="Start over">
+    <div id="restart-ask" class="row">
+      <button class="big b-tomato" id="restart">↺ Start all over</button>
+    </div>
+    <div id="restart-confirm" class="restart-confirm" hidden>
+      <p>Clear all stars and stickers and start from level 1?</p>
+      <div class="row">
+        <button class="big b-tomato" id="restart-yes">Yes, start over</button>
+        <button class="big b-sky" id="restart-no">No, keep them</button>
+      </div>
+    </div>
+  </section>
   <section class="panel">
     <details class="grown">
       <summary>For grown-ups</summary>
@@ -329,9 +342,6 @@ function home(){
         <p><b>Sorting Machine: if / then.</b> Each box is a condition. "If it is red, it goes here, else it goes there" is how programs make decisions.</p>
         <p><b>Froggy Loop: repeat.</b> Instead of saying "hop, hop, hop", we say "repeat 3 times: hop". Counting the lily pads first builds the habit of planning a loop.</p>
         <p>Short sessions of 10 to 15 minutes work best at 4 to 5 years old. Sit together, let them press the buttons, and praise the trying more than the stars.</p>
-        <div class="resetrow">
-          <button class="small ${resetArmed?'danger':''}" id="reset">${resetArmed?'Tap again to clear all stars':'Start over (clear stars)'}</button>
-        </div>
       </div>
     </details>
   </section>`;
@@ -339,11 +349,14 @@ function home(){
   app.querySelectorAll('[data-game]').forEach(b=>b.onclick=()=>{
     sfx.tap();const id=b.dataset.game;
     const lv=Math.min(state.progress[id]||0,GAMES[id].levels-1);openGame(id,lv)});
-  const r=document.getElementById('reset');
-  r.onclick=()=>{
-    if(!resetArmed){resetArmed=true;home();document.querySelector('details.grown').open=true;return}
-    resetArmed=false;state.progress={robot:0,pattern:0,sort:0,loop:0};save();home();
-  };
+  const ask=document.getElementById('restart-ask'),conf=document.getElementById('restart-confirm');
+  document.getElementById('restart').onclick=()=>{
+    sfx.tap();ask.hidden=true;conf.hidden=false;speak('Start all over? Ask a grown-up!');
+    document.getElementById('restart-no').focus()};
+  document.getElementById('restart-no').onclick=()=>{
+    sfx.tap();conf.hidden=true;ask.hidden=false;document.getElementById('restart').focus()};
+  document.getElementById('restart-yes').onclick=()=>{
+    state.progress={robot:0,pattern:0,sort:0,loop:0};save();sfx.yay();speak('All fresh! Let\'s play!');home()};
   window.scrollTo(0,0);
 }
 

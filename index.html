@@ -1,0 +1,561 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Code Cubs</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@500;700;800&display=swap">
+<style>
+/* Layout: a toy shelf of four chunky game blocks; each game opens to one big board with a tray of fat buttons underneath. Single bright playroom theme on purpose. */
+:root{
+  --bg:#E4F3EA;
+  --ink:#1D3445;
+  --soft:#5A7486;
+  --card:#FFFFFF;
+  --line:#C6E1D1;
+  --tomato:#FF6A48;
+  --sun:#FFC63A;
+  --sky:#3D9DE8;
+  --grass:#29B06E;
+  --plum:#8B5AD4;
+  --tile:#F3FAF6;
+  --font-display:'Fredoka','Baloo 2','Trebuchet MS',system-ui,sans-serif;
+  --font-body:'Nunito','Segoe UI',system-ui,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{min-height:100%}
+body{
+  background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:17px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:14px 40px;
+  -webkit-tap-highlight-color:transparent;
+  user-select:none;-webkit-user-select:none;
+}
+.wrap{max-width:900px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+button{font:inherit;color:inherit;border:0;cursor:pointer;touch-action:manipulation}
+button:focus-visible,summary:focus-visible{outline:4px solid var(--sky);outline-offset:3px}
+h1,h2,h3{font-family:var(--font-display);margin:0;text-wrap:balance}
+
+/* top bar */
+.bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
+.logo h1{font-size:clamp(28px,6vw,40px);font-weight:700;letter-spacing:.5px}
+.logo h1 span{color:var(--tomato)}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--card);border:3px solid var(--line);border-radius:999px;padding:6px 14px;font-family:var(--font-display);font-weight:600;font-size:20px}
+.iconbtn{width:52px;height:52px;border-radius:16px;background:var(--card);border:3px solid var(--line);font-size:24px;display:grid;place-items:center;box-shadow:0 4px 0 var(--line)}
+.iconbtn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--line)}
+
+/* home cards */
+.games{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.game{
+  position:relative;border-radius:28px;padding:18px 18px 16px;text-align:left;
+  display:flex;flex-direction:column;gap:8px;min-height:200px;color:#fff;
+  box-shadow:0 8px 0 rgba(0,0,0,.18);transition:transform .12s;
+}
+.game:hover{transform:translateY(-3px) rotate(-.5deg)}
+.game:active{transform:translateY(5px);box-shadow:0 3px 0 rgba(0,0,0,.18)}
+.game .art{font-size:64px;line-height:1;filter:drop-shadow(0 4px 0 rgba(0,0,0,.15))}
+.game h2{font-size:clamp(22px,4.4vw,30px);font-weight:700}
+.game .tag{align-self:flex-start;background:rgba(255,255,255,.25);border-radius:999px;padding:3px 12px;font-weight:800;font-size:13px;letter-spacing:.08em;text-transform:uppercase}
+.game .stars{margin-top:auto;font-size:22px;letter-spacing:2px}
+.g-robot{background:var(--sky)}
+.g-pattern{background:var(--plum)}
+.g-sort{background:var(--tomato)}
+.g-loop{background:var(--grass)}
+
+.panel{background:var(--card);border:3px solid var(--line);border-radius:24px;padding:16px 18px}
+.panel h3{font-size:22px;margin-bottom:10px}
+.shelf{display:grid;grid-template-columns:repeat(auto-fill,minmax(56px,1fr));gap:10px}
+.sticker{aspect-ratio:1;max-width:100%;border-radius:18px;display:grid;place-items:center;font-size:34px;background:var(--tile);border:3px dashed var(--line)}
+.sticker.on{border:3px solid var(--sun);background:#FFF6D9;animation:pop .5s}
+.sticker.off{color:transparent;text-shadow:0 0 0 #D5E6DC}
+.hint{color:var(--soft);font-size:15px;margin:8px 0 0}
+
+details.grown summary{font-family:var(--font-display);font-weight:600;font-size:20px;cursor:pointer;list-style:none;display:flex;align-items:center;gap:8px}
+details.grown summary::-webkit-details-marker{display:none}
+details.grown summary::before{content:"▸";transition:transform .2s}
+details.grown[open] summary::before{transform:rotate(90deg)}
+.tips{display:grid;gap:12px;margin-top:12px;user-select:text;-webkit-user-select:text}
+.tips p{margin:0;line-height:1.55;max-width:65ch}
+.tips b{font-family:var(--font-display);font-weight:600}
+.resetrow{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:6px}
+.small{background:var(--tile);border:2px solid var(--line);border-radius:12px;padding:8px 14px;font-weight:700;font-size:15px}
+.small.danger{background:#FFE4DD;border-color:#FFB9A8}
+
+/* game shell */
+.ghead{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.ghead h2{font-size:clamp(24px,5vw,34px);flex:1;min-width:0}
+.levels{display:flex;gap:8px;flex-wrap:wrap}
+.lvl{width:44px;height:44px;border-radius:50%;background:var(--card);border:3px solid var(--line);font-family:var(--font-display);font-weight:700;font-size:19px}
+.lvl.done{background:var(--sun);border-color:#E9AE1B}
+.lvl.cur{outline:4px solid var(--ink);outline-offset:2px}
+.lvl:disabled{opacity:.4;cursor:default}
+.say{display:flex;align-items:center;gap:12px;background:var(--card);border:3px solid var(--line);border-radius:22px;padding:12px 16px;font-size:20px;font-weight:800;line-height:1.3}
+.say .speaker{flex:none}
+.stage{display:flex;flex-direction:column;gap:16px;align-items:center}
+
+/* chunky buttons */
+.big{font-family:var(--font-display);font-weight:700;font-size:24px;border-radius:20px;padding:12px 22px;min-height:64px;display:inline-flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 6px 0 rgba(0,0,0,.2);color:#fff}
+.big:active{transform:translateY(4px);box-shadow:0 2px 0 rgba(0,0,0,.2)}
+.big:disabled{opacity:.45;transform:none}
+.b-go{background:var(--grass)}
+.b-undo{background:var(--sun);color:var(--ink)}
+.b-sky{background:var(--sky)}
+.b-tomato{background:var(--tomato)}
+
+/* robot board */
+.board{position:relative;width:min(100%,440px);aspect-ratio:1;max-width:100%;background:var(--card);border:4px solid var(--line);border-radius:24px;display:grid;grid-template-columns:repeat(5,1fr);grid-template-rows:repeat(5,1fr);padding:6px;gap:6px}
+.cell{background:var(--tile);border-radius:12px;display:grid;place-items:center;font-size:clamp(24px,8vw,44px)}
+.cell.goal{background:#FFF3C9;animation:glow 1.4s ease-in-out infinite}
+.bot{position:absolute;width:calc((100% - 24px)/5);height:calc((100% - 24px)/5);display:grid;place-items:center;font-size:clamp(30px,10vw,54px);transition:left .38s ease,top .38s ease;pointer-events:none;z-index:2}
+.board-inner{position:absolute;inset:6px}
+.strip{display:flex;flex-wrap:wrap;gap:8px;min-height:64px;width:min(100%,560px);background:var(--card);border:3px dashed var(--line);border-radius:20px;padding:8px;align-items:center}
+.strip:empty::before{content:"Tap arrows to make a plan";color:var(--soft);font-weight:700;padding-left:8px}
+.cmd{width:44px;height:44px;border-radius:12px;background:var(--sky);color:#fff;display:grid;place-items:center;font-size:26px;font-weight:800}
+.cmd.now{background:var(--sun);color:var(--ink);transform:scale(1.15)}
+.pad{display:grid;grid-template-columns:repeat(3,72px);grid-template-rows:repeat(2,72px);gap:10px}
+.arrow{border-radius:20px;background:var(--sky);color:#fff;font-size:38px;font-weight:800;box-shadow:0 6px 0 #2577B8}
+.arrow:active{transform:translateY(4px);box-shadow:0 2px 0 #2577B8}
+.arrow:disabled{opacity:.45}
+.row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+
+/* pattern */
+.seq{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;background:var(--card);border:4px solid var(--line);border-radius:24px;padding:14px;width:min(100%,640px)}
+.bead{width:clamp(46px,11vw,72px);aspect-ratio:1;max-width:100%;border-radius:18px;background:var(--tile);display:grid;place-items:center;font-size:clamp(28px,7vw,46px)}
+.bead.q{background:#F1E8FF;border:4px dashed var(--plum);color:var(--plum);font-family:var(--font-display);font-weight:700}
+.bead.q.filled{border-style:solid;animation:pop .4s}
+.opts{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
+.opt{width:clamp(84px,22vw,110px);aspect-ratio:1;max-width:100%;border-radius:26px;background:var(--card);border:4px solid var(--line);font-size:clamp(44px,11vw,60px);box-shadow:0 6px 0 var(--line)}
+.opt:active{transform:translateY(4px);box-shadow:0 2px 0 var(--line)}
+.dots{display:flex;gap:8px}
+.dot{width:18px;height:18px;border-radius:50%;background:var(--line)}
+.dot.on{background:var(--sun)}
+
+/* sort */
+.item{font-size:clamp(70px,20vw,110px);line-height:1;height:clamp(100px,26vw,140px);display:grid;place-items:center}
+.item.fly-a{animation:flyA .45s forwards}
+.item.fly-b{animation:flyB .45s forwards}
+.bins{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;width:min(100%,560px)}
+.bin{border-radius:26px;padding:14px 10px 12px;color:#fff;display:flex;flex-direction:column;align-items:center;gap:4px;min-height:150px;box-shadow:0 7px 0 rgba(0,0,0,.2)}
+.bin:active{transform:translateY(4px);box-shadow:0 3px 0 rgba(0,0,0,.2)}
+.bin .bi{font-size:46px;line-height:1}
+.bin .bl{font-family:var(--font-display);font-weight:700;font-size:24px}
+.bin .bc{font-size:22px;min-height:28px;letter-spacing:1px}
+.rule{font-family:var(--font-display);font-size:18px;font-weight:600;display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.rule span{background:var(--card);border:3px solid var(--line);border-radius:14px;padding:6px 12px}
+.rule em{font-style:normal;color:var(--tomato);font-weight:700}
+
+/* loop */
+.pond{position:relative;width:min(100%,640px);background:#BFE5FA;border-radius:28px;padding:30px 8px 18px;border:4px solid #9ED3F0}
+.pads{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.lily{aspect-ratio:1;max-width:100%;border-radius:50%;background:var(--grass);display:grid;place-items:center;font-size:clamp(18px,5vw,30px);box-shadow:inset 0 -5px 0 rgba(0,0,0,.15);position:relative}
+.lily .n{position:absolute;bottom:-22px;font-family:var(--font-display);font-weight:600;color:var(--ink);font-size:15px}
+.frog{position:absolute;top:24px;aspect-ratio:1;width:calc((100% - 16px - 24px)/7);display:grid;place-items:center;font-size:clamp(30px,8vw,48px);transition:left .3s ease;pointer-events:none}
+.frog.hop{animation:hop .3s ease}
+.code{font-family:ui-monospace,'Cascadia Code',Consolas,monospace;background:var(--ink);color:#fff;border-radius:22px;padding:16px 20px;font-size:clamp(18px,4.5vw,24px);display:flex;flex-direction:column;gap:6px;width:min(100%,420px)}
+.code .k{color:var(--sun);font-weight:700}
+.code .num{display:inline-grid;place-items:center;min-width:44px;height:44px;border-radius:12px;background:var(--grass);color:#fff;font-weight:800;margin:0 6px}
+.code .body{padding-left:28px}
+.nums{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.nb{width:64px;height:64px;border-radius:50%;background:var(--card);border:4px solid var(--line);font-family:var(--font-display);font-weight:700;font-size:28px;box-shadow:0 5px 0 var(--line)}
+.nb.sel{background:var(--grass);border-color:#1C8A54;color:#fff}
+
+/* celebration */
+.overlay{position:fixed;inset:0;background:rgba(29,52,69,.55);display:grid;place-items:center;z-index:20;padding:20px max(16px,env(safe-area-inset-right,0px)) 20px max(16px,env(safe-area-inset-left,0px))}
+.party{background:var(--card);border-radius:32px;padding:26px 24px;text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center;max-width:420px;width:100%;animation:pop .45s}
+.party .bigstar{font-size:96px;line-height:1;animation:spin 1.2s ease}
+.party h2{font-size:36px}
+.party p{margin:0;font-size:19px;font-weight:700;color:var(--soft)}
+.confetti{position:fixed;top:-60px;font-size:30px;pointer-events:none;z-index:21;animation:fall linear forwards}
+
+.shake{animation:shake .4s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-10px)}75%{transform:translateX(10px)}}
+@keyframes pop{0%{transform:scale(.6)}70%{transform:scale(1.08)}100%{transform:scale(1)}}
+@keyframes glow{0%,100%{box-shadow:0 0 0 0 rgba(255,198,58,.0)}50%{box-shadow:0 0 0 6px rgba(255,198,58,.55)}}
+@keyframes hop{0%{transform:translateY(0)}50%{transform:translateY(-26px)}100%{transform:translateY(0)}}
+@keyframes spin{from{transform:rotate(-200deg) scale(.3)}to{transform:rotate(0) scale(1)}}
+@keyframes fall{to{transform:translateY(110vh) rotate(360deg)}}
+@keyframes flyA{to{transform:translate(-90px,160px) scale(.2);opacity:0}}
+@keyframes flyB{to{transform:translate(90px,160px) scale(.2);opacity:0}}
+@media (max-width:520px){
+  .game{min-height:170px;padding:14px}
+  .game .art{font-size:48px}
+  .pad{grid-template-columns:repeat(3,64px);grid-template-rows:repeat(2,64px)}
+  .big{font-size:21px;padding:10px 16px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+  .confetti{display:none}
+}
+</style>
+</head>
+<body>
+
+<div class="wrap" id="app"></div>
+
+<script>
+(function(){
+const app=document.getElementById('app');
+
+/* ---------- storage ---------- */
+const KEY='code-cubs-v1';
+let state={progress:{robot:0,pattern:0,sort:0,loop:0},muted:false};
+try{const s=JSON.parse(localStorage.getItem(KEY)||'null');if(s&&s.progress)state=Object.assign(state,s)}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
+
+/* ---------- sound + voice ---------- */
+let ac=null;
+function tone(freqs,dur=0.12,type='sine'){
+  if(state.muted)return;
+  try{
+    ac=ac||new (window.AudioContext||window.webkitAudioContext)();
+    let t=ac.currentTime;
+    freqs.forEach(f=>{
+      const o=ac.createOscillator(),g=ac.createGain();
+      o.type=type;o.frequency.value=f;g.gain.setValueAtTime(.18,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);
+      o.connect(g);g.connect(ac.destination);o.start(t);o.stop(t+dur);t+=dur*.9;
+    });
+  }catch(e){}
+}
+const sfx={
+  tap:()=>tone([660],.07,'triangle'),
+  step:()=>tone([520],.08,'square'),
+  yay:()=>tone([523,659,784,1046],.13,'triangle'),
+  oops:()=>tone([300,220],.16,'sawtooth'),
+  win:()=>tone([523,659,784,659,784,1046],.14,'triangle')
+};
+function speak(text){
+  if(state.muted)return;
+  try{
+    const s=window.speechSynthesis;if(!s)return;
+    s.cancel();const u=new SpeechSynthesisUtterance(text);u.rate=.9;u.pitch=1.25;s.speak(u);
+  }catch(e){}
+}
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+function shake(el){el.classList.remove('shake');void el.offsetWidth;el.classList.add('shake')}
+
+/* ---------- game data ---------- */
+const ROBOT_LEVELS=[
+  {start:[2,0],goal:[2,2],rocks:[]},
+  {start:[4,1],goal:[1,1],rocks:[]},
+  {start:[0,0],goal:[2,3],rocks:[[0,2],[1,2]]},
+  {start:[4,0],goal:[0,4],rocks:[[2,0],[2,1],[2,2]]},
+  {start:[0,0],goal:[4,4],rocks:[[0,2],[1,2],[3,1],[3,2],[3,3]]}
+];
+const PATTERN_LEVELS=['AB','AAB','ABC','ABB','mix'];
+const PATTERN_SETS=[['🍎','🍌','🍇','🍊'],['🐶','🐱','🐸','🐵'],['🔴','🟡','🔵','🟢'],['🚗','🚀','🚂','🚁']];
+const SORT_LEVELS=[
+  {a:{label:'Red',icon:'🔴',color:'#E5483A',items:['🍎','🍓','🍒','🚒','🌹']},
+   b:{label:'Yellow',icon:'🟡',color:'#E9A912',items:['🍌','🍋','🌽','🐤','🧀']},
+   test:'is it red?'},
+  {a:{label:'Animals',icon:'🐾',color:'#8B5AD4',items:['🐶','🐱','🐮','🐷','🐰']},
+   b:{label:'Food',icon:'🍽️',color:'#29B06E',items:['🍕','🍪','🥕','🍞','🧁']},
+   test:'is it an animal?'},
+  {a:{label:'Sky',icon:'☁️',color:'#3D9DE8',items:['🐦','🦋','✈️','🎈','🚁']},
+   b:{label:'Sea',icon:'🌊',color:'#1F6FB0',items:['🐟','🐙','🐳','🦀','⛵']},
+   test:'does it go in the sky?'},
+  {a:{label:'Green',icon:'🟢',color:'#29B06E',items:['🥦','🐸','🍏','🥒','🦖']},
+   b:{label:'Blue',icon:'🔵',color:'#3D9DE8',items:['🐳','🫐','💧','🧢','👖']},
+   test:'is it green?'}
+];
+const LOOP_LEVELS=[2,3,5,4,6];
+
+const GAMES={
+  robot:{name:'Robot Road',art:'🤖',tag:'Steps',cls:'g-robot',levels:ROBOT_LEVELS.length,
+    intro:'Help the robot get the star! Tap the arrows to make a plan, then press Go.'},
+  pattern:{name:'What Comes Next?',art:'🍎',tag:'Patterns',cls:'g-pattern',levels:PATTERN_LEVELS.length,
+    intro:'Look at the pattern. What comes next?'},
+  sort:{name:'Sorting Machine',art:'🧺',tag:'If / then',cls:'g-sort',levels:SORT_LEVELS.length,
+    intro:'Put each thing in the right box!'},
+  loop:{name:'Froggy Loop',art:'🐸',tag:'Repeat',cls:'g-loop',levels:LOOP_LEVELS.length,
+    intro:'How many hops to reach the fly? Pick a number, then press Go.'}
+};
+
+const STICKERS=['🦖','🚀','🚒','🦁','🐙','🌈','🦄','🚂','🐉','🏆'];
+const MAX_STARS=Object.values(GAMES).reduce((s,g)=>s+g.levels,0);
+const totalStars=()=>Object.keys(GAMES).reduce((s,k)=>s+Math.min(state.progress[k]||0,GAMES[k].levels),0);
+const stickerCount=()=>Math.min(STICKERS.length,Math.floor(totalStars()/2));
+
+/* ---------- top bar ---------- */
+function topBar(){
+  return `<div class="bar">
+    <div class="logo"><h1>Code <span>Cubs</span></h1></div>
+    <div class="chip" aria-label="Stars earned">⭐ ${totalStars()} / ${MAX_STARS}</div>
+    <button class="iconbtn" id="mute" aria-label="${state.muted?'Turn sound on':'Turn sound off'}">${state.muted?'🔇':'🔊'}</button>
+  </div>`;
+}
+function bindTop(){
+  const m=document.getElementById('mute');
+  m.onclick=()=>{state.muted=!state.muted;save();try{speechSynthesis.cancel()}catch(e){}
+    m.textContent=state.muted?'🔇':'🔊';m.setAttribute('aria-label',state.muted?'Turn sound on':'Turn sound off');sfx.tap()};
+}
+
+/* ---------- home ---------- */
+let resetArmed=false;
+function home(){
+  current=null;
+  const cards=Object.entries(GAMES).map(([id,g])=>{
+    const done=Math.min(state.progress[id]||0,g.levels);
+    const stars='★'.repeat(done)+'☆'.repeat(g.levels-done);
+    return `<button class="game ${g.cls}" data-game="${id}" aria-label="${g.name}, ${done} of ${g.levels} stars">
+      <span class="art">${g.art}</span>
+      <span class="tag">${g.tag}</span>
+      <h2>${g.name}</h2>
+      <span class="stars" aria-hidden="true">${stars}</span>
+    </button>`}).join('');
+  const sc=stickerCount();
+  const shelf=STICKERS.map((s,i)=>`<div class="sticker ${i<sc?'on':'off'}" aria-label="${i<sc?'Sticker':'Locked sticker'}">${s}</div>`).join('');
+  app.innerHTML=`${topBar()}
+  <div class="games">${cards}</div>
+  <section class="panel" aria-label="Sticker shelf">
+    <h3>My stickers</h3>
+    <div class="shelf">${shelf}</div>
+    <p class="hint">Every 2 stars unlocks a new sticker.</p>
+  </section>
+  <section class="panel">
+    <details class="grown">
+      <summary>For grown-ups</summary>
+      <div class="tips">
+        <p>These games teach the four ideas behind every program, with no reading needed. Each game speaks its instructions out loud. Tap the speaker bubble to hear them again.</p>
+        <p><b>Robot Road: sequencing.</b> Your child plans every step before the robot moves, then runs the plan. When it bumps a rock, that is debugging: find the wrong arrow and fix it. Ask "Which arrow made it bump?"</p>
+        <p><b>What Comes Next?: patterns.</b> Spotting AB, AAB, ABC and ABB repeats is the root of noticing structure in code. Try clapping the pattern together.</p>
+        <p><b>Sorting Machine: if / then.</b> Each box is a condition. "If it is red, it goes here, else it goes there" is how programs make decisions.</p>
+        <p><b>Froggy Loop: repeat.</b> Instead of saying "hop, hop, hop", we say "repeat 3 times: hop". Counting the lily pads first builds the habit of planning a loop.</p>
+        <p>Short sessions of 10 to 15 minutes work best at 4 to 5 years old. Sit together, let them press the buttons, and praise the trying more than the stars.</p>
+        <div class="resetrow">
+          <button class="small ${resetArmed?'danger':''}" id="reset">${resetArmed?'Tap again to clear all stars':'Start over (clear stars)'}</button>
+        </div>
+      </div>
+    </details>
+  </section>`;
+  bindTop();
+  app.querySelectorAll('[data-game]').forEach(b=>b.onclick=()=>{
+    sfx.tap();const id=b.dataset.game;
+    const lv=Math.min(state.progress[id]||0,GAMES[id].levels-1);openGame(id,lv)});
+  const r=document.getElementById('reset');
+  r.onclick=()=>{
+    if(!resetArmed){resetArmed=true;home();document.querySelector('details.grown').open=true;return}
+    resetArmed=false;state.progress={robot:0,pattern:0,sort:0,loop:0};save();home();
+  };
+  window.scrollTo(0,0);
+}
+
+/* ---------- game shell ---------- */
+let current=null;
+function openGame(id,lv){
+  resetArmed=false;
+  current={id,lv,token:Math.random()};
+  const g=GAMES[id];const done=state.progress[id]||0;
+  const levels=Array.from({length:g.levels},(_,i)=>
+    `<button class="lvl ${i<done?'done':''} ${i===lv?'cur':''}" data-lv="${i}" ${i>done?'disabled':''} aria-label="Level ${i+1}">${i<done?'★':i+1}</button>`).join('');
+  app.innerHTML=`${topBar()}
+  <div class="ghead">
+    <button class="iconbtn" id="back" aria-label="Back to all games">🏠</button>
+    <h2>${g.name}</h2>
+    <div class="levels">${levels}</div>
+  </div>
+  <button class="say" id="say"><span class="speaker">🗣️</span><span id="saytext">${g.intro}</span></button>
+  <div class="stage" id="stage"></div>`;
+  bindTop();
+  document.getElementById('back').onclick=()=>{sfx.tap();try{speechSynthesis.cancel()}catch(e){}home()};
+  document.getElementById('say').onclick=()=>speak(document.getElementById('saytext').textContent);
+  app.querySelectorAll('[data-lv]').forEach(b=>b.onclick=()=>{sfx.tap();openGame(id,+b.dataset.lv)});
+  const stage=document.getElementById('stage');
+  ({robot:robotGame,pattern:patternGame,sort:sortGame,loop:loopGame})[id](stage,lv);
+  speak(document.getElementById('saytext').textContent);
+  window.scrollTo(0,0);
+}
+function setSay(t){const el=document.getElementById('saytext');if(el)el.textContent=t}
+const alive=tok=>current&&current.token===tok;
+
+/* ---------- celebration ---------- */
+function win(id,lv){
+  const before=stickerCount();
+  if((state.progress[id]||0)<=lv){state.progress[id]=lv+1;save()}
+  const newSticker=stickerCount()>before?STICKERS[stickerCount()-1]:null;
+  const last=lv>=GAMES[id].levels-1;
+  sfx.win();
+  speak(newSticker?'You did it! You got a new sticker!':'You did it! Great coding!');
+  const ov=document.createElement('div');ov.className='overlay';
+  ov.innerHTML=`<div class="party" role="dialog" aria-label="Level complete">
+    <div class="bigstar">${newSticker||'⭐'}</div>
+    <h2>You did it!</h2>
+    <p>${newSticker?'New sticker unlocked!':'Level '+(lv+1)+' complete'}</p>
+    <div class="row">
+      ${last?'':'<button class="big b-go" id="next">Next ▶</button>'}
+      <button class="big b-sky" id="again">Again ↺</button>
+      <button class="big b-tomato" id="tohome">🏠</button>
+    </div></div>`;
+  document.body.appendChild(ov);
+  const bits=['⭐','🎉','✨','🟡','🔵','🔴','🟢'];
+  for(let i=0;i<26;i++){
+    const c=document.createElement('span');c.className='confetti';c.textContent=pick(bits);
+    c.style.left=Math.random()*100+'vw';c.style.animationDuration=(1.6+Math.random()*1.6)+'s';c.style.animationDelay=(Math.random()*.6)+'s';
+    document.body.appendChild(c);setTimeout(()=>c.remove(),4000);
+  }
+  const close=()=>ov.remove();
+  const n=ov.querySelector('#next');if(n)n.onclick=()=>{close();openGame(id,lv+1)};
+  ov.querySelector('#again').onclick=()=>{close();openGame(id,lv)};
+  ov.querySelector('#tohome').onclick=()=>{close();home()};
+  (n||ov.querySelector('#again')).focus();
+}
+
+/* ---------- 1. Robot Road (sequencing) ---------- */
+function robotGame(stage,lv){
+  const L=ROBOT_LEVELS[lv],tok=current.token;
+  const MAX=12;let cmds=[],running=false,pos=L.start.slice();
+  const isRock=(r,c)=>L.rocks.some(k=>k[0]===r&&k[1]===c);
+  const DIRS={up:[-1,0,'↑'],down:[1,0,'↓'],left:[0,-1,'←'],right:[0,1,'→']};
+  let cells='';
+  for(let r=0;r<5;r++)for(let c=0;c<5;c++){
+    const g=L.goal[0]===r&&L.goal[1]===c;
+    cells+=`<div class="cell ${g?'goal':''}">${g?'⭐':isRock(r,c)?'🪨':''}</div>`;
+  }
+  stage.innerHTML=`
+    <div class="board" id="board">${cells}<div class="board-inner"><div class="bot" id="bot">🤖</div></div></div>
+    <div class="strip" id="strip" aria-label="Your plan"></div>
+    <div class="pad">
+      <span></span><button class="arrow" data-d="up" aria-label="Up">↑</button><span></span>
+      <button class="arrow" data-d="left" aria-label="Left">←</button><button class="arrow" data-d="down" aria-label="Down">↓</button><button class="arrow" data-d="right" aria-label="Right">→</button>
+    </div>
+    <div class="row">
+      <button class="big b-undo" id="undo">↩ Undo</button>
+      <button class="big b-go" id="go">▶ Go!</button>
+    </div>`;
+  const bot=stage.querySelector('#bot'),strip=stage.querySelector('#strip');
+  const place=()=>{bot.style.left=`calc(${pos[1]} * (100% + 6px) / 5)`;bot.style.top=`calc(${pos[0]} * (100% + 6px) / 5)`};
+  place();
+  const draw=(hi=-1)=>{strip.innerHTML=cmds.map((d,i)=>`<span class="cmd ${i===hi?'now':''}">${DIRS[d][2]}</span>`).join('')};
+  const lock=v=>{running=v;stage.querySelectorAll('button').forEach(b=>b.disabled=v)};
+  stage.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{
+    if(running)return;if(cmds.length>=MAX){shake(strip);sfx.oops();return}
+    cmds.push(b.dataset.d);sfx.tap();draw()});
+  stage.querySelector('#undo').onclick=()=>{if(running)return;cmds.pop();sfx.tap();draw()};
+  stage.querySelector('#go').onclick=async()=>{
+    if(running)return;
+    if(!cmds.length){setSay('Tap the arrows first to make a plan!');speak('Tap the arrows first to make a plan!');shake(strip);return}
+    lock(true);pos=L.start.slice();place();await sleep(200);
+    for(let i=0;i<cmds.length;i++){
+      if(!alive(tok))return;
+      draw(i);const d=DIRS[cmds[i]];const nr=pos[0]+d[0],nc=pos[1]+d[1];
+      if(nr<0||nr>4||nc<0||nc>4||isRock(nr,nc)){
+        sfx.oops();shake(bot);const msg=isRock(nr,nc)?'Bump! A rock is in the way. Fix your plan!':'Oops! The robot can\'t go off the board.';
+        setSay(msg);speak(msg);await sleep(900);if(!alive(tok))return;
+        pos=L.start.slice();place();draw();lock(false);return;
+      }
+      pos=[nr,nc];sfx.step();place();await sleep(450);
+    }
+    if(!alive(tok))return;
+    if(pos[0]===L.goal[0]&&pos[1]===L.goal[1]){draw();win('robot',lv);running=false}
+    else{const msg='Almost! The robot stopped before the star. Add more steps.';setSay(msg);speak(msg);sfx.oops();
+      await sleep(900);if(!alive(tok))return;pos=L.start.slice();place();draw();lock(false)}
+  };
+}
+
+/* ---------- 2. What Comes Next? (patterns) ---------- */
+function patternGame(stage,lv){
+  const NEED=4;let got=0,busy=false;const tok=current.token;
+  function round(){
+    const type=PATTERN_LEVELS[lv]==='mix'?pick(['AB','AAB','ABC','ABB']):PATTERN_LEVELS[lv];
+    const set=shuffle(pick(PATTERN_SETS));
+    const letters=[...new Set(type.split(''))];const map={};letters.forEach((l,i)=>map[l]=set[i]);
+    const unit=type.split('').map(l=>map[l]);
+    const len=type.length===3?6:6;
+    const seq=Array.from({length:len},(_,i)=>unit[i%unit.length]);
+    const ans=unit[len%unit.length];
+    const others=shuffle(set.filter(s=>s!==ans)).slice(0,2);
+    const opts=shuffle([ans,...others]);
+    stage.innerHTML=`
+      <div class="dots" aria-label="${got} of ${NEED} done">${Array.from({length:NEED},(_,i)=>`<span class="dot ${i<got?'on':''}"></span>`).join('')}</div>
+      <div class="seq">${seq.map(s=>`<span class="bead">${s}</span>`).join('')}<span class="bead q" id="q">?</span></div>
+      <div class="opts">${opts.map(o=>`<button class="opt" data-o="${o}">${o}</button>`).join('')}</div>`;
+    busy=false;
+    stage.querySelectorAll('[data-o]').forEach(b=>b.onclick=async()=>{
+      if(busy)return;
+      if(b.dataset.o===ans){
+        busy=true;const q=stage.querySelector('#q');q.textContent=ans;q.classList.add('filled');sfx.yay();got++;
+        const dots=stage.querySelectorAll('.dot');if(dots[got-1])dots[got-1].classList.add('on');
+        if(got>=NEED){await sleep(700);if(alive(tok))win('pattern',lv);return}
+        speak(pick(['Yes!','Great job!','You got it!','Super!']));
+        await sleep(1000);if(alive(tok))round();
+      }else{sfx.oops();shake(b);speak('Hmm, look again. Try another one!')}
+    });
+  }
+  round();
+}
+
+/* ---------- 3. Sorting Machine (if / then) ---------- */
+function sortGame(stage,lv){
+  const L=SORT_LEVELS[lv],tok=current.token;
+  const queue=shuffle([...shuffle(L.a.items).slice(0,3).map(i=>({i,box:'a'})),...shuffle(L.b.items).slice(0,3).map(i=>({i,box:'b'}))]);
+  const inBox={a:[],b:[]};let idx=0,busy=false;
+  setSay(`If it is ${L.a.label.toLowerCase()}, put it in the ${L.a.label} box. If not, put it in the ${L.b.label} box.`);
+  stage.innerHTML=`
+    <div class="rule"><span>IF <em>${L.test}</em></span><span>YES → ${L.a.icon}</span><span>NO → ${L.b.icon}</span></div>
+    <div class="item" id="item"></div>
+    <div class="bins">
+      <button class="bin" data-b="a" style="background:${L.a.color}"><span class="bi">${L.a.icon}</span><span class="bl">${L.a.label}</span><span class="bc" id="ca"></span></button>
+      <button class="bin" data-b="b" style="background:${L.b.color}"><span class="bi">${L.b.icon}</span><span class="bl">${L.b.label}</span><span class="bc" id="cb"></span></button>
+    </div>`;
+  const item=stage.querySelector('#item');
+  const show=()=>{item.className='item';item.textContent=queue[idx].i;item.style.animation='pop .35s'};
+  show();
+  stage.querySelectorAll('[data-b]').forEach(b=>b.onclick=async()=>{
+    if(busy)return;const want=queue[idx].box,got=b.dataset.b;
+    if(got===want){
+      busy=true;sfx.yay();item.style.animation='';item.classList.add(got==='a'?'fly-a':'fly-b');
+      inBox[got].push(queue[idx].i);stage.querySelector('#c'+got).textContent=inBox[got].join('');
+      await sleep(480);if(!alive(tok))return;idx++;
+      if(idx>=queue.length){win('sort',lv);return}
+      show();busy=false;
+    }else{sfx.oops();shake(item);speak(`Hmm. Is it ${L.a.label.toLowerCase()}? Try the other box.`)}
+  });
+}
+
+/* ---------- 4. Froggy Loop (repeat) ---------- */
+function loopGame(stage,lv){
+  const target=LOOP_LEVELS[lv],tok=current.token;let n=1,running=false,at=0;
+  const pads=Array.from({length:7},(_,i)=>`<div class="lily">${i===target?'🪰':''}${i>0?`<span class="n">${i}</span>`:''}</div>`).join('');
+  stage.innerHTML=`
+    <div class="pond"><div class="pads">${pads}</div><div class="frog" id="frog">🐸</div></div>
+    <div class="code" aria-label="Your loop">
+      <div><span class="k">repeat</span><span class="num" id="num">1</span><span class="k">times</span></div>
+      <div class="body">🐸 hop</div>
+    </div>
+    <div class="nums">${[1,2,3,4,5,6].map(i=>`<button class="nb ${i===1?'sel':''}" data-n="${i}">${i}</button>`).join('')}</div>
+    <button class="big b-go" id="go">▶ Go!</button>`;
+  const frog=stage.querySelector('#frog'),pond=stage.querySelector('.pond');
+  const place=()=>{frog.style.left=`calc(8px + ${at} * ((100% - 16px - 24px) / 7 + 4px))`};
+  place();
+  stage.querySelectorAll('[data-n]').forEach(b=>b.onclick=()=>{
+    if(running)return;n=+b.dataset.n;sfx.tap();
+    stage.querySelectorAll('[data-n]').forEach(x=>x.classList.toggle('sel',x===b));
+    stage.querySelector('#num').textContent=n;speak(String(n))});
+  stage.querySelector('#go').onclick=async()=>{
+    if(running)return;running=true;stage.querySelectorAll('button').forEach(b=>b.disabled=true);
+    at=0;place();await sleep(150);
+    for(let i=0;i<n;i++){
+      if(!alive(tok))return;
+      at++;frog.classList.remove('hop');void frog.offsetWidth;frog.classList.add('hop');sfx.step();place();
+      speak(String(i+1));await sleep(560);
+    }
+    if(!alive(tok))return;
+    if(at===target){win('loop',lv);return}
+    const msg=at>target?'Splash! Too many hops. Try a smaller number.':'Not there yet! Try a bigger number.';
+    sfx.oops();shake(pond);setSay(msg);speak(msg);await sleep(1200);if(!alive(tok))return;
+    at=0;place();running=false;stage.querySelectorAll('button').forEach(b=>b.disabled=false);
+  };
+}
+
+home();
+})();
+</script>
+</body>
+</html>
